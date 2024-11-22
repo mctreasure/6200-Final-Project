@@ -1,0 +1,187 @@
+---
+title: "final_project"
+author: "Group 10"
+format: 
+  html:
+    toc: true
+    toc_float: true
+  pdf:
+    documentclass: report
+    toc: true
+    toc_float: true
+    includes:
+      in-header: header.tex
+    pdf-engine: xelatex
+editor: visual
+---
+# Importing Necessary packages
+```{r}
+library(janitor)
+library(lubridate)
+library(purrr)
+library(rvest)
+library(tidyverse)
+library(knitr)
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(ggrepel)
+library(patchwork)
+library(forcats)
+library(writexl)
+```
+
+
+Change this to fit your directory
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Change this to fit your directory
+knitr::opts_knit$set(root.dir = "C:/Users/ekf98/OneDrive/Documents/UofG Courses/Term 1 Fall 2024/Data Visualization/Assignments/Final Project/6200-Final-Project/")
+```
+
+# Reading, Cleaning & Preparing Data
+```{r}
+# Importing datasets for fuels except electric vehicles and hybrids
+data15_19 = read.csv("fuel_consumption/2015_2019.csv")
+data20 = read.csv("fuel_consumption/2020.csv")
+data21 = read.csv("fuel_consumption/2021.csv")
+data22 = read.csv("fuel_consumption/2022.csv")
+data23 = read.csv("fuel_consumption/2023.csv")
+data24 = read.csv("fuel_consumption/2024.csv")
+
+# Binding all fuel datasets together
+data_fuel_15_24 = rbind(data15_19, data20, data21, data22, data23, data24)
+
+data_fuel_15_24 = clean_names(data_fuel_15_24)
+
+# # renmaing some columns
+# data_fuel_15_24 = data_fuel_15_24 %>%
+#   rename(range_km = combined_mpg.1)
+
+
+# Creating the same column names to ensure they match across ev/hybrid and fuel datasets
+data_fuel_15_24 = add_column(data_fuel_15_24, motor_kw = NA, .after = 4)
+data_fuel_15_24 = add_column(data_fuel_15_24, recharge_time_h = NA, .after = 9)
+data_fuel_15_24 = add_column(data_fuel_15_24, city_kwh_100_km = NA, .after = 13)
+data_fuel_15_24 = add_column(data_fuel_15_24, highway_kwh_100_km = NA, .after = 14)
+data_fuel_15_24 = add_column(data_fuel_15_24, combined_kwh_100_km = NA, .after = 15)
+data_fuel_15_24 = add_column(data_fuel_15_24, range_km = NA, .after = 16)
+
+
+head(data_fuel_15_24)
+```
+
+
+
+```{r}
+# Importing datasets for EVs and hybrids
+data_ev_15_24 = read.csv("fuel_consumption/Battery_Electric_2015_2024.csv")
+data_hybrid_15_24 = read.csv("fuel_consumption/Plugin_Hybrid_2015_2024.csv")
+
+
+data_hybrid_15_24 = clean_names(data_hybrid_15_24)
+
+data_hybrid_15_24 = data_hybrid_15_24 %>% select(-combined_le_100_km, -range_1_km,
+                                                 -fuel_type_2)
+# renaming some columns
+data_hybrid_15_24 = data_hybrid_15_24 %>% 
+  rename(motor_kw = motor_k_w,
+         fuel_type = fuel_type_1,
+         range_km = range_2_km)
+
+
+data_hybrid_15_24 = add_column(data_hybrid_15_24, city_kwh_100_km = NA, .after = 13)
+data_hybrid_15_24 = add_column(data_hybrid_15_24, highway_kwh_100_km = NA, .after = 14)
+data_hybrid_15_24 = add_column(data_hybrid_15_24, combined_kwh_100_km = NA, .after = 15)
+
+head(data_hybrid_15_24)
+
+```
+
+
+```{r}
+
+data_ev_15_24 = clean_names(data_ev_15_24)
+
+# renaming some columns
+data_ev_15_24 = data_ev_15_24 %>% 
+  rename(motor_kw = motor_k_w,
+         city_kwh_100_km = city_k_wh_100_km,
+         highway_kwh_100_km = highway_k_wh_100_km,
+         combined_kwh_100_km = combined_k_wh_100_km)
+
+
+data_ev_15_24 = data_ev_15_24 %>% select(-city_le_100_km, -highway_le_100_km,
+                                                 -combined_le_100_km)
+
+
+data_ev_15_24 = data_ev_15_24 %>% select(model_year, make, model, vehicle_class, 
+                                         motor_kw, transmission, fuel_type,
+                                         recharge_time_h, city_kwh_100_km, highway_kwh_100_km,
+                                         combined_kwh_100_km, range_km, co2_emissions_g_km,
+                                         co2_rating, smog_rating)
+
+# Creating the same column names to ensure they match across ev and hybrid datasets
+data_ev_15_24 = add_column(data_ev_15_24, engine_size_l = NA, .after = 5)
+data_ev_15_24 = add_column(data_ev_15_24, cylinders = NA, .after = 6)
+data_ev_15_24 = add_column(data_ev_15_24, city_l_100_km = NA, .after = 10)
+data_ev_15_24 = add_column(data_ev_15_24, highway_l_100_km = NA, .after = 11)
+data_ev_15_24 = add_column(data_ev_15_24, combined_l_100_km = NA, .after = 12)
+
+
+head(data_hybrid_15_24)
+
+# combining ev and hybrid datasets
+data_ev_hybrid_15_24 = rbind(data_ev_15_24, data_hybrid_15_24)
+
+# Creating the same column names to ensure they match across ev/hybrid and fuel datasets
+data_ev_hybrid_15_24 = add_column(data_ev_hybrid_15_24, combined_mpg = NA, .before = 18)
+
+tail(data_ev_hybrid_15_24)
+```
+
+
+```{r}
+
+# Creating A complete dataset of all types of fuel
+all_data_15_24 = rbind(data_fuel_15_24, data_ev_hybrid_15_24)
+
+# Rearranging the data to specification
+all_data_15_24 = all_data_15_24 %>% 
+  arrange(model_year, make, model, vehicle_class)
+
+# regular, premium, diesel
+
+# # Recategorizing categories on fuel type
+# all_data_15_24 = all_data_15_24 %>% 
+#   mutate(fuel_type = case__when(
+#     fuel_type == "X" ~ "regular",
+#     
+#   ))
+
+
+#  Recategorizing categories on fuel type
+all_data_15_24$fuel_type = fct_recode(all_data_15_24$fuel_type,
+                                      "regular" = "X",
+                                      "electric" = "B",
+                                      "diesel" = "D",
+                                      "e85" = "E",
+                                      "premium" = "Z",
+                                      "natural gas" = "N",
+                                      "regular" = "X",
+                                      "electric/regular" = "B/X",
+                                      "electric/regular" = "B/X*",
+                                      "electric/premium" = "B/Z",
+                                      "electric/premium" = "B/Z*")
+
+
+# Saving dataset to an Excel file
+write_xlsx(all_data_15_24, "all_data_15_24.xlsx")
+
+View(all_data_15_24)
+
+```
+
+
