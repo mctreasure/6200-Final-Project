@@ -8,8 +8,9 @@ editor: visual
 library(tidyverse)
 library(dplyr)
 
-fuel_prices <- read_csv("C:/Users/mckay/OneDrive/Documents/18100001.csv")
+fuel_prices <- read_csv("C:/Users/ekf98/OneDrive/Documents/UofG Courses/Term 1 Fall 2024/Data Visualization/Assignments/Final Project/6200-Final-Project/18100001.csv")
 ```
+
 ```{r}
 head(fuel_prices)
 ```
@@ -42,7 +43,7 @@ fuel_prices <- fuel_prices %>%
     -`symbol`,
     -`terminated`,
     -`decimals`
-  ) %>% 
+  ) 
 
   
 fuel_prices <- fuel_prices %>% 
@@ -68,7 +69,8 @@ fuel_prices <- fuel_prices %>%
   #separate(geo, into = c("city", "province"), sep = ",") %>% 
   separate(ref_date, into = c("year", "month"), sep = "-")
 
-fuel_prices
+fuel_prices %>% 
+  arrange(year, month, fuel_type, geo)
 
 
 ```

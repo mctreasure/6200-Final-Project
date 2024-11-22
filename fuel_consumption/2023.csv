@@ -1,4 +1,4 @@
-ÔªøModel year,Make,Model,Vehicle class,Engine size (L),Cylinders,Transmission,Fuel type,City (L/100 km),Highway (L/100 km),Combined (L/100 km),Combined (mpg),CO2 emissions (g/km),CO2 rating,Smog rating
+Model year,Make,Model,Vehicle class,Engine size (L),Cylinders,Transmission,Fuel type,City (L/100 km),Highway (L/100 km),Combined (L/100 km),Combined (mpg),CO2 emissions (g/km),CO2 rating,Smog rating
 2023,Acura,Integra,Full-size,1.5,4,AV7,Z,7.9,6.3,7.2,39,167,6,7
 2023,Acura,Integra A-SPEC,Full-size,1.5,4,AV7,Z,8.1,6.5,7.4,38,172,6,7
 2023,Acura,Integra A-SPEC,Full-size,1.5,4,M6,Z,8.9,6.5,7.8,36,181,6,6
@@ -27,7 +27,7 @@
 2023,Audi,A4 Sedan 45 TFSI quattro,Compact,2.0,4,AM7,Z,9.7,7.4,8.7,32,203,5,5
 2023,Audi,A4 allroad 45 TFSI quattro,Station wagon: Small,2.0,4,AM7,Z,10.1,7.9,9.1,31,214,5,5
 2023,Audi,A5 Cabriolet 45 TFSI quattro,Subcompact,2.0,4,AM7,Z,9.9,7.6,8.9,32,208,5,5
-2023,Audi,A5 Coup√© 45 TFSI quattro,Subcompact,2.0,4,AM7,Z,9.7,7.4,8.7,32,203,5,5
+2023,Audi,A5 CoupÈ 45 TFSI quattro,Subcompact,2.0,4,AM7,Z,9.7,7.4,8.7,32,203,5,5
 2023,Audi,A5 Sportback 45 TFSI quattro,Mid-size,2.0,4,AM7,Z,9.7,7.4,8.7,32,203,5,5
 2023,Audi,A6 45 TFSI quattro,Mid-size,2.0,4,AM7,Z,10.0,7.5,8.9,32,207,5,5
 2023,Audi,A6 55 TFSI quattro,Mid-size,3.0,6,AM7,Z,11.1,7.8,9.6,29,224,5,5
@@ -42,12 +42,12 @@
 2023,Audi,Q7 45 TFSI quattro,Sport utility vehicle: Standard,2.0,4,AS8,Z,12.2,9.5,11.0,26,257,4,5
 2023,Audi,Q7 55 TFSI quattro,Sport utility vehicle: Standard,3.0,6,AS8,Z,12.9,10.9,12.0,24,281,4,5
 2023,Audi,Q8 55 TFSI quattro,Sport utility vehicle: Standard,3.0,6,AS8,Z,12.8,10.4,11.7,24,273,4,5
-2023,Audi,R8 Coup√© Performance,Two-seater,5.2,10,AM7,Z,16.6,10.2,13.7,21,320,3,1
-2023,Audi,R8 Coup√© Performance quattro,Two-seater,5.2,10,AM7,Z,17.7,12.8,15.5,18,361,2,1
+2023,Audi,R8 CoupÈ Performance,Two-seater,5.2,10,AM7,Z,16.6,10.2,13.7,21,320,3,1
+2023,Audi,R8 CoupÈ Performance quattro,Two-seater,5.2,10,AM7,Z,17.7,12.8,15.5,18,361,2,1
 2023,Audi,R8 Spyder Performance,Two-seater,5.2,10,AM7,Z,16.6,10.2,13.7,21,320,3,1
 2023,Audi,R8 Spyder Performance quattro,Two-seater,5.2,10,AM7,Z,17.7,12.8,15.5,18,361,2,1
-2023,Audi,R8 GT Coup√©,Two-seater,5.2,10,AM7,Z,16.2,11.2,14.0,20,328,3,1
-2023,Audi,RS 5 Coup√© quattro,Subcompact,2.9,6,AS8,Z,13.2,9.2,11.4,25,266,4,5
+2023,Audi,R8 GT CoupÈ,Two-seater,5.2,10,AM7,Z,16.2,11.2,14.0,20,328,3,1
+2023,Audi,RS 5 CoupÈ quattro,Subcompact,2.9,6,AS8,Z,13.2,9.2,11.4,25,266,4,5
 2023,Audi,RS 5 Sportback quattro,Mid-size,2.9,6,AS8,Z,13.2,9.3,11.5,25,267,4,5
 2023,Audi,RS 6 Avant quattro,Station wagon: Mid-size,4.0,8,AS8,Z,16.4,11.1,14.1,20,328,3,3
 2023,Audi,RS 7 Sportback quattro,Mid-size,4.0,8,AS8,Z,16.4,11.1,14.1,20,328,3,3
@@ -55,7 +55,7 @@
 2023,Audi,S3 quattro,Subcompact,2.0,4,AM7,Z,10.2,7.3,8.9,32,207,5,5
 2023,Audi,S4 Sedan quattro,Compact,3.0,6,AS8,Z,11.1,8.0,9.7,29,226,5,5
 2023,Audi,S5 Cabriolet quattro,Subcompact,3.0,6,AS8,Z,11.3,8.4,10.0,28,233,5,5
-2023,Audi,S5 Coup√© quattro,Subcompact,3.0,6,AS8,Z,11.1,8.0,9.7,29,226,5,5
+2023,Audi,S5 CoupÈ quattro,Subcompact,3.0,6,AS8,Z,11.1,8.0,9.7,29,226,5,5
 2023,Audi,S5 Sportback quattro,Mid-size,3.0,6,AS8,Z,11.1,8.0,9.7,29,226,5,5
 2023,Audi,S6 quattro,Mid-size,2.9,6,AS8,Z,12.3,9.0,10.8,26,254,5,5
 2023,Audi,S7 quattro,Mid-size,2.9,6,AS8,Z,12.3,9.0,10.8,26,254,5,5
@@ -64,9 +64,9 @@
 2023,Audi,SQ5 Sportback quattro,Sport utility vehicle: Small,3.0,6,AS8,Z,12.5,9.7,11.2,25,262,4,5
 2023,Audi,SQ7 quattro,Sport utility vehicle: Standard,4.0,8,AS8,Z,16.1,11.3,13.9,20,325,3,3
 2023,Audi,SQ8 quattro,Sport utility vehicle: Standard,4.0,8,AS8,Z,16.1,11.3,13.9,20,325,3,3
-2023,Audi,TT Coup√© 45 TFSI quattro,Subcompact,2.0,4,AM7,X,10.5,8.0,9.4,30,221,5,7
+2023,Audi,TT CoupÈ 45 TFSI quattro,Subcompact,2.0,4,AM7,X,10.5,8.0,9.4,30,221,5,7
 2023,Audi,TT Roadster 45 TFSI quattro,Two-seater,2.0,4,AM7,X,10.5,8.0,9.4,30,221,5,7
-2023,Audi,TTS Coup√© quattro,Subcompact,2.0,4,AM7,Z,10.0,7.7,9.0,31,209,5,3
+2023,Audi,TTS CoupÈ quattro,Subcompact,2.0,4,AM7,Z,10.0,7.7,9.0,31,209,5,3
 2023,Bentley,Bentayga,Sport utility vehicle: Standard,4.0,8,AS8,Z,16.2,11.2,14.0,20,328,3,3
 2023,Bentley,Bentayga EWB,Sport utility vehicle: Standard,4.0,8,AS8,Z,16.2,11.2,14.0,20,328,3,3
 2023,Bentley,Bentayga Speed,Sport utility vehicle: Standard,6.0,12,AS8,Z,19.3,12.7,16.3,17,383,2,3
@@ -505,10 +505,10 @@
 2023,Kia,Sportage Hybrid AWD,Sport utility vehicle: Small,1.6,4,AM6,X,6.1,6.3,6.2,46,145,7,7
 2023,Kia,Stinger AWD,Mid-size,3.3,6,AS8,Z,13.7,9.6,11.9,24,280,4,3
 2023,Kia,Telluride AWD,Sport utility vehicle: Small,3.8,6,AS8,X,12.8,9.8,11.4,25,269,4,5
-2023,Lamborghini,Hurac√°n EVO Coupe,Two-seater,5.2,10,AM7,Z,18.0,13.1,15.8,18,368,2,1
-2023,Lamborghini,Hurac√°n EVO Coupe AWD,Two-seater,5.2,10,AM7,Z,18.2,13.2,15.9,18,370,2,1
-2023,Lamborghini,Hurac√°n EVO Spyder,Two-seater,5.2,10,AM7,Z,18.0,13.1,15.8,18,368,2,1
-2023,Lamborghini,Hurac√°n EVO Spyder AWD,Two-seater,5.2,10,AM7,Z,18.2,13.2,15.9,18,370,2,1
+2023,Lamborghini,Hurac·n EVO Coupe,Two-seater,5.2,10,AM7,Z,18.0,13.1,15.8,18,368,2,1
+2023,Lamborghini,Hurac·n EVO Coupe AWD,Two-seater,5.2,10,AM7,Z,18.2,13.2,15.9,18,370,2,1
+2023,Lamborghini,Hurac·n EVO Spyder,Two-seater,5.2,10,AM7,Z,18.0,13.1,15.8,18,368,2,1
+2023,Lamborghini,Hurac·n EVO Spyder AWD,Two-seater,5.2,10,AM7,Z,18.2,13.2,15.9,18,370,2,1
 2023,Lamborghini,Urus Performante,Sport utility vehicle: Standard,4.0,8,AS8,Z,16.6,12.5,14.8,19,345,3,3
 2023,Lamborghini,Urus S,Sport utility vehicle: Standard,4.0,8,AS8,Z,16.6,12.5,14.8,19,345,3,3
 2023,Land Rover,Defender 90 P300,Sport utility vehicle: Standard,2.0,4,AS8,Z,13.2,11.3,12.3,23,289,4,7

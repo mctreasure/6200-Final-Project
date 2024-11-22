@@ -1,4 +1,4 @@
-﻿Model year,Make,Model,Vehicle class,Engine size (L),Cylinders,Transmission,Fuel type,City (L/100 km),Highway (L/100 km),Combined (L/100 km),Combined (mpg),CO2 emissions (g/km),CO2 rating,Smog rating
+Model year,Make,Model,Vehicle class,Engine size (L),Cylinders,Transmission,Fuel type,City (L/100 km),Highway (L/100 km),Combined (L/100 km),Combined (mpg),CO2 emissions (g/km),CO2 rating,Smog rating
 2022,Acura,ILX,Compact,2.4,4,AM8,Z,9.9,7.0,8.6,33,200,6,3
 2022,Acura,MDX SH-AWD,Sport utility vehicle: Small,3.5,6,AS10,Z,12.6,9.4,11.2,25,263,4,5
 2022,Acura,MDX Type S,Sport utility vehicle: Standard,3.0,6,AS10,Z,13.8,11.2,12.4,23,291,4,5
@@ -896,7 +896,7 @@
 2022,Subaru,WRX AWD,Mid-size,2.4,4,AV8,Z,12.7,9.4,11.2,25,262,4,3
 2022,Subaru,WRX AWD,Mid-size,2.4,4,M6,Z,12.3,9.0,10.8,26,254,5,3
 2022,Toyota,4Runner 4WD,Sport utility vehicle: Standard,4.0,6,AS5,X,14.9,12.6,13.8,20,323,3,5
-2022,Toyota,4Runner 4WD (Part-Time 4WD),Sport utility vehicle: Standard,4.0,6,AS5,X,14.8,12.5,13.8,20,321,3,5
+2022,Toyota,4Runner 4WD (Part-Time 4WD) ,Sport utility vehicle: Standard,4.0,6,AS5,X,14.8,12.5,13.8,20,321,3,5
 2022,Toyota,C-HR,Compact,2.0,4,AS7,X,8.7,7.5,8.2,34,189,6,3
 2022,Toyota,Camry LE/SE,Mid-size,2.5,4,AS8,X,8.5,6.1,7.4,38,174,7,7
 2022,Toyota,Camry XSE,Mid-size,2.5,4,AS8,X,8.6,6.3,7.6,37,178,7,7

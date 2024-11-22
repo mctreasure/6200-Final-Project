@@ -14,7 +14,9 @@ format:
     pdf-engine: xelatex
 editor: visual
 ---
+
 # Importing Necessary packages
+
 ```{r}
 library(janitor)
 library(lubridate)
@@ -32,8 +34,8 @@ library(forcats)
 library(writexl)
 ```
 
-
 Change this to fit your directory
+
 ```{r}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -41,7 +43,8 @@ knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "C:/Users/ekf98/OneDrive/Documents/UofG Courses/Term 1 Fall 2024/Data Visualization/Assignments/Final Project/6200-Final-Project/")
 ```
 
-# Reading, Cleaning & Preparing Data
+# Reading, Cleaning & Preparing Fuel Comsumption Dataset
+
 ```{r}
 # Importing datasets for fuels except electric vehicles and hybrids
 data15_19 = read.csv("fuel_consumption/2015_2019.csv")
@@ -70,14 +73,13 @@ data_fuel_15_24 = add_column(data_fuel_15_24, combined_kwh_100_km = NA, .after =
 data_fuel_15_24 = add_column(data_fuel_15_24, range_km = NA, .after = 16)
 
 
-head(data_fuel_15_24)
+View(data_fuel_15_24)
+tail(data_fuel_15_24)
 ```
-
-
 
 ```{r}
 # Importing datasets for EVs and hybrids
-data_ev_15_24 = read.csv("fuel_consumption/Battery_Electric_2015_2024.csv")
+data_ev_15_24 = read_xlsx("fuel_consumption/Battery_Electric_2015_2024.xlsx")
 data_hybrid_15_24 = read.csv("fuel_consumption/Plugin_Hybrid_2015_2024.csv")
 
 
@@ -99,7 +101,6 @@ data_hybrid_15_24 = add_column(data_hybrid_15_24, combined_kwh_100_km = NA, .aft
 head(data_hybrid_15_24)
 
 ```
-
 
 ```{r}
 
@@ -142,7 +143,6 @@ data_ev_hybrid_15_24 = add_column(data_ev_hybrid_15_24, combined_mpg = NA, .befo
 tail(data_ev_hybrid_15_24)
 ```
 
-
 ```{r}
 
 # Creating A complete dataset of all types of fuel
@@ -151,15 +151,6 @@ all_data_15_24 = rbind(data_fuel_15_24, data_ev_hybrid_15_24)
 # Rearranging the data to specification
 all_data_15_24 = all_data_15_24 %>% 
   arrange(model_year, make, model, vehicle_class)
-
-# regular, premium, diesel
-
-# # Recategorizing categories on fuel type
-# all_data_15_24 = all_data_15_24 %>% 
-#   mutate(fuel_type = case__when(
-#     fuel_type == "X" ~ "regular",
-#     
-#   ))
 
 
 #  Recategorizing categories on fuel type
@@ -178,9 +169,207 @@ all_data_15_24$fuel_type = fct_recode(all_data_15_24$fuel_type,
 
 
 # Saving dataset to an Excel file
-write_xlsx(all_data_15_24, "all_data_15_24.xlsx")
+write.csv(all_data_15_24, "all_data_15_24.csv")
 
 View(all_data_15_24)
+
+```
+
+
+# Cleaning, Reading & Preparing Fuel Price Dataset
+
+Specify this to your path
+```{r}
+
+fuel_prices <- read_csv("C:/Users/ekf98/OneDrive/Documents/UofG Courses/Term 1 Fall 2024/Data Visualization/Assignments/Final Project/6200-Final-Project/18100001.csv")
+```
+
+```{r}
+head(fuel_prices)
+```
+
+
+```{r}
+fuel_prices <- fuel_prices %>% 
+  janitor::clean_names()
+
+head(fuel_prices)
+```
+
+```{r}
+fuel_prices <- fuel_prices %>% 
+  filter(ref_date >= "2015-01")
+
+fuel_prices
+```
+
+
+```{r}
+fuel_prices <- fuel_prices %>% 
+  select(
+    -`dguid`,
+    -`uom`,
+    -`uom_id`,
+    -`scalar_factor`,
+    -`scalar_id`,
+    -`vector`,
+    -`coordinate`,
+    -`status`,
+    -`symbol`,
+    -`terminated`,
+    -`decimals`
+  ) 
+
+  
+fuel_prices <- fuel_prices %>% 
+  rename(fuel_type = type_of_fuel,
+         value_cents_l = value)
+
+fuel_prices
+```
+
+
+
+
+```{r}
+fuel_prices <- fuel_prices %>% 
+  mutate(fuel_type = str_replace_all(
+    fuel_type, c(
+      "Regular unleaded gasoline at self service filling stations" = "regular",
+      "Premium unleaded gasoline at self service filling stations" = "premium",
+      "Diesel fuel at self service filling stations"= "diesel")
+  ))
+
+fuel_prices <- fuel_prices %>% 
+  filter(fuel_type != "Household heating fuel")
+
+fuel_prices <- fuel_prices %>% 
+  #separate(geo, into = c("city", "province"), sep = ",") %>% 
+  separate(ref_date, into = c("year", "month"), sep = "-")
+
+fuel_prices %>% 
+  arrange(year, month, fuel_type, geo)
+
+
+```
+
+## Picking relevant years from fuel price data and averaging across 
+
+```{r}
+average_fuel_prices = fuel_prices %>%
+  group_by(year, month, fuel_type) %>% 
+  mutate(average_fuel_price = round(mean(value_cents_l, na.rm = TRUE), 2)) %>% 
+  arrange(year, fuel_type, month, geo)
+
+
+average_fuel_prices = fuel_prices |> 
+  group_by(year, month, fuel_type) |>
+  summarise(average_fuel_price = round(mean(value_cents_l, na.rm = TRUE), 2))
+
+
+View(average_fuel_prices)
+
+View(all_data_15_24)
+```
+
+## Joining up both datasets
+
+
+```{r}
+test_join = all_data_15_24 |> 
+  left_join(average_fuel_prices %>% filter(year >= 2020),
+            by = c("fuel_type")) 
+
+# creating a column to capture average yearly fuel prices by fuel type
+test_join = test_join %>% 
+  group_by(year, fuel_type) %>% 
+  mutate(avg_fuel_price_yr = round(mean(average_fuel_price, na.rm = TRUE), 2))
+
+# creating a column to capture average fuel prices by fuel type
+test_join = test_join %>% 
+  group_by(fuel_type) %>% 
+  mutate(avg_fuel_type_price = round(mean(avg_fuel_price_yr, na.rm = TRUE), 2))
+
+# Rearranging columns for convenience
+test_join = test_join %>% 
+  select(model_year, make, model, vehicle_class, motor_kw, engine_size_l,
+         cylinders, transmission, fuel_type, year, month, average_fuel_price,
+         avg_fuel_price_yr, avg_fuel_type_price, recharge_time_h, city_l_100_km, 
+         highway_l_100_km, combined_l_100_km, city_kwh_100_km, highway_kwh_100_km, 
+         combined_kwh_100_km, range_km, combined_mpg, co2_emissions_g_km, 
+         co2_rating, smog_rating)
+
+```
+
+
+### Filling in electric fuel prices on joined dataset
+```{r}
+
+View(test_join)
+
+View(test_join %>% 
+       filter(fuel_type == "electric/premium"))
+
+test_join = test_join %>% 
+  filter(!fuel_type %in% c("e85", "natural gas"))
+
+
+# I fill 'electric' fuel type price with average public charging price in 2024
+test_join = test_join %>% 
+  mutate(average_fuel_price = ifelse(
+    fuel_type == "electric", 40, average_fuel_price
+  ))
+```
+
+### Creating electric/regular and electric/premium fuel prices on joined dataset
+```{r}
+
+# Calculate the average price for premium fuel
+premium_price <- test_join %>%
+  filter(fuel_type == "premium") %>%
+  summarise(avg_price = mean(avg_fuel_type_price, na.rm = TRUE)) %>%
+  pull(avg_price)
+
+
+# Calculate the average price for regular fuel
+regular_price <- test_join %>%
+  filter(fuel_type == "regular") %>%
+  summarise(avg_price = mean(avg_fuel_type_price, na.rm = TRUE)) %>%
+  pull(avg_price)
+
+```
+
+
+### Filling in electric/premium/regular fuel prices on joined dataset
+```{r}
+
+# Mutate to compute the new value for electric/regular fuel type
+test_join = test_join %>%
+  mutate(
+    average_fuel_price = case_when(
+      fuel_type == "electric/premium" ~ (premium_price + 40) / 2,
+      fuel_type == "electric/regular" ~ (regular_price + 40) / 2,
+      TRUE ~ average_fuel_price
+  ),
+  
+  avg_fuel_price_yr = case_when(
+      fuel_type == "electric/premium" ~ (premium_price + 40) / 2,
+      fuel_type == "electric/regular" ~ (regular_price + 40) / 2,
+      TRUE ~ avg_fuel_price_yr),
+  
+  avg_fuel_type_price = case_when(
+      fuel_type == "electric/premium" ~ (premium_price + 40) / 2,
+      fuel_type == "electric/regular" ~ (regular_price + 40) / 2,
+      TRUE ~ avg_fuel_type_price)
+  )
+
+tail(test_join)
+```
+
+
+```{r}
+# Saving dataset to an Excel file
+write.csv(test_join, "fuel_consumption_prices.csv")
 
 ```
 
