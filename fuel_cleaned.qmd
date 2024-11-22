@@ -1,0 +1,74 @@
+---
+title: "Fuel Data"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(dplyr)
+
+fuel_prices <- read_csv("C:/Users/mckay/OneDrive/Documents/18100001.csv")
+```
+```{r}
+head(fuel_prices)
+```
+
+```{r}
+fuel_prices <- fuel_prices %>% 
+  janitor::clean_names()
+
+head(fuel_prices)
+```
+
+```{r}
+fuel_prices <- fuel_prices %>% 
+  filter(ref_date >= "2015-01")
+
+fuel_prices
+```
+
+```{r}
+fuel_prices <- fuel_prices %>% 
+  select(
+    -`dguid`,
+    -`uom`,
+    -`uom_id`,
+    -`scalar_factor`,
+    -`scalar_id`,
+    -`vector`,
+    -`coordinate`,
+    -`status`,
+    -`symbol`,
+    -`terminated`,
+    -`decimals`
+  ) %>% 
+
+  
+fuel_prices <- fuel_prices %>% 
+  rename(fuel_type = type_of_fuel,
+         value_cents_l = value)
+
+fuel_prices
+```
+
+```{r}
+fuel_prices <- fuel_prices %>% 
+  mutate(fuel_type = str_replace_all(
+    fuel_type, c(
+      "Regular unleaded gasoline at self service filling stations" = "regular",
+      "Premium unleaded gasoline at self service filling stations" = "premium",
+      "Diesel fuel at self service filling stations"= "diesel")
+  ))
+
+fuel_prices <- fuel_prices %>% 
+  filter(fuel_type != "Household heating fuel")
+
+fuel_prices <- fuel_prices %>% 
+  #separate(geo, into = c("city", "province"), sep = ",") %>% 
+  separate(ref_date, into = c("year", "month"), sep = "-")
+
+fuel_prices
+
+
+```
