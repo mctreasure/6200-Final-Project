@@ -1,4 +1,4 @@
-"","year","make","model","avg_used_price","avg_new_price","merged_used_new_price"
+"","model_year","make","model","avg_used_price","avg_new_price","merged_used_new_price"
 "1","2016","Acura","ILX",16297.42,NA,16297.42
 "2","2016","Acura","MDX",19801.15,NA,19801.15
 "3","2016","Acura","RDX",16909.77,NA,16909.77
