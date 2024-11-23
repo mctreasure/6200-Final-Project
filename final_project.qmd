@@ -17,7 +17,7 @@ editor: visual
 
 # Importing Necessary packages
 
-```{r}
+```{r, echo = FALSE, include=FALSE}
 library(janitor)
 library(lubridate)
 library(purrr)
@@ -32,6 +32,12 @@ library(ggrepel)
 library(patchwork)
 library(forcats)
 library(writexl)
+
+library(httr)
+library(xml2)
+library(rvest)
+library(jsonlite)
+library(purrr)
 ```
 
 Change this to fit your directory
@@ -73,7 +79,7 @@ data_fuel_15_24 = add_column(data_fuel_15_24, combined_kwh_100_km = NA, .after =
 data_fuel_15_24 = add_column(data_fuel_15_24, range_km = NA, .after = 16)
 
 
-View(data_fuel_15_24)
+# View(data_fuel_15_24)
 tail(data_fuel_15_24)
 ```
 
@@ -169,17 +175,17 @@ all_data_15_24$fuel_type = fct_recode(all_data_15_24$fuel_type,
 
 
 # Saving dataset to an Excel file
-write.csv(all_data_15_24, "all_data_15_24.csv")
+# write.csv(all_data_15_24, "all_data_15_24.csv")
 
 View(all_data_15_24)
 
 ```
 
-
 # Cleaning, Reading & Preparing Fuel Price Dataset
 
 Specify this to your path
-```{r}
+
+```{r, include=FALSE}
 
 fuel_prices <- read_csv("C:/Users/ekf98/OneDrive/Documents/UofG Courses/Term 1 Fall 2024/Data Visualization/Assignments/Final Project/6200-Final-Project/18100001.csv")
 ```
@@ -187,7 +193,6 @@ fuel_prices <- read_csv("C:/Users/ekf98/OneDrive/Documents/UofG Courses/Term 1 F
 ```{r}
 head(fuel_prices)
 ```
-
 
 ```{r}
 fuel_prices <- fuel_prices %>% 
@@ -202,7 +207,6 @@ fuel_prices <- fuel_prices %>%
 
 fuel_prices
 ```
-
 
 ```{r}
 fuel_prices <- fuel_prices %>% 
@@ -228,9 +232,6 @@ fuel_prices <- fuel_prices %>%
 fuel_prices
 ```
 
-
-
-
 ```{r}
 fuel_prices <- fuel_prices %>% 
   mutate(fuel_type = str_replace_all(
@@ -253,7 +254,7 @@ fuel_prices %>%
 
 ```
 
-## Picking relevant years from fuel price data and averaging across 
+## Picking relevant years from fuel price data and averaging across
 
 ```{r}
 average_fuel_prices = fuel_prices %>%
@@ -267,13 +268,12 @@ average_fuel_prices = fuel_prices |>
   summarise(average_fuel_price = round(mean(value_cents_l, na.rm = TRUE), 2))
 
 
-View(average_fuel_prices)
+head(average_fuel_prices)
 
-View(all_data_15_24)
+head(all_data_15_24)
 ```
 
 ## Joining up both datasets
-
 
 ```{r}
 test_join = all_data_15_24 |> 
@@ -299,10 +299,12 @@ test_join = test_join %>%
          combined_kwh_100_km, range_km, combined_mpg, co2_emissions_g_km, 
          co2_rating, smog_rating)
 
+View(test_join)
+
 ```
 
-
 ### Filling in electric fuel prices on joined dataset
+
 ```{r}
 
 View(test_join)
@@ -322,6 +324,7 @@ test_join = test_join %>%
 ```
 
 ### Creating electric/regular and electric/premium fuel prices on joined dataset
+
 ```{r}
 
 # Calculate the average price for premium fuel
@@ -339,8 +342,8 @@ regular_price <- test_join %>%
 
 ```
 
-
 ### Filling in electric/premium/regular fuel prices on joined dataset
+
 ```{r}
 
 # Mutate to compute the new value for electric/regular fuel type
@@ -366,11 +369,203 @@ test_join = test_join %>%
 tail(test_join)
 ```
 
-
 ```{r}
 # Saving dataset to an Excel file
-write.csv(test_join, "fuel_consumption_prices.csv")
+# write.csv(test_join, "fuel_consumption_prices.csv")
+```
+
+```{r}
+# creating a column to capture average yearly fuel prices by fuel type
+test_join %>% 
+  group_by(model_year, make) %>% 
+  summarise(fuel_price_vehicle = round(mean(average_fuel_price, na.rm = TRUE), 2)) %>% 
+  arrange(model_year, make) %>% 
+  select(model_year, make)
+
+# write.csv(unique_models, "unique_models.csv")
+```
+
+```{r}
+
+# used vehicle prices
+base_url = "https://www.autotrader.ca/cars/on/guelph/?rcp=100&rcs=%d&srt=8&yRng=2016%%2C2024&prx=100&prv=Ontario&loc=N1G%%202W1&fuel=Diesel%%2CElectric%%2CFlex%%20Fuel%%2CGas%%2FElectric%%20Hybrid%%2CGasoline%%2CUnknown&hprc=True&wcp=True&sts=Used&inMarket=advancedSearch"
+
+# number of pages to scrape
+num_pages = 169
+
+# Generating list of URLs for all pages
+page_urls = sprintf(base_url, seq(0, (num_pages - 1) * 100, by = 100))
+  
+# creating a function to scrape data from a single page
+scrape_page = function(url){
+  page = read_html(url)
+  
+  # Extracting desired elements
+  car_make_model = page %>% html_elements("span.title-with-trim") %>% html_text(trim = TRUE)
+  car_prices = page %>% html_elements("span.price-amount") %>% html_text(trim = TRUE)
+  
+  # Log the URL and number of items found
+  cat("Scraping:", url, "\n")
+  cat("Titles found:", length(car_make_model), " Prices found:", length(car_prices), "\n")
+  
+  # Handle empty results
+  if (length(car_make_model) == 0 && length(car_prices) == 0) {
+    cat("No data found for:", url, "\n")
+    return(data.frame(car_make_model = character(), price = character()))
+  }
+  
+  # combining into a dataframe
+  data.frame(
+    car_specs = car_make_model,
+    price = car_prices,
+    stringAsFactors = FALSE
+  )
+}
+
+
+# Scraping all pages and combine results
+vehicle_used_prices = map_dfr(page_urls, function(url){
+  
+  # Delay before each request
+  Sys.sleep(2)
+  
+  # Call scrape_page
+  scrape_page(url)
+})
+
+
+
+# Viewing combined data
+View(vehicle_used_prices)
+
 
 ```
+
+```{r}
+
+# new vehicle prices
+base_url = "https://www.autotrader.ca/cars/on/guelph/?rcp=100&rcs=%d&srt=4&yRng=2016%%2C2024&prx=100&prv=Ontario&loc=N1G%%202W1&fuel=Diesel%%2CElectric%%2CFlex%%20Fuel%%2CGas%%2FElectric%%20Hybrid%%2CGasoline%%2CUnknown&hprc=True&wcp=True&sts=New&showcpo=1&inMarket=advancedSearch"
+
+
+
+# Generating list of URLs for all pages
+page_urls = sprintf(base_url, seq(0, (num_pages - 1) * 100, by = 100))
+
+
+# Scraping all pages and combine results
+vehicle_prices = map_dfr(page_urls, function(url){
+  
+  # Delay before each request
+  Sys.sleep(2)
+  
+  # Call scrape_page
+  scrape_page(url)
+})
+
+
+# Viewing combined data
+View(vehicle_prices)
+
+
+
+```
+
+
+```{r}
+
+write.csv(vehicle_prices, "vehicle_new_prices.csv")
+
+write.csv(vehicle_used_prices, "vehicle_used_prices.csv")
+
+```
+
+```{r}
+# Dropping stringAsFactors column in both datasets
+vehicle_prices = vehicle_prices %>% select(-stringAsFactors)
+vehicle_used_prices = vehicle_used_prices %>% select(-stringAsFactors)
+
+
+# renaming some columns
+vehicle_prices = vehicle_prices %>% 
+  rename(new_price = price)
+
+vehicle_used_prices = vehicle_used_prices %>% 
+  rename(used_price = price)
+
+# Creating the same column names to ensure they match across ev/hybrid and fuel datasets
+vehicle_prices = add_column(vehicle_prices, used_price = NA, .after = 2)
+vehicle_used_prices = add_column(vehicle_used_prices, new_price = NA, .after = 1)
+
+
+# Binding datasets together
+final_vehicle_prices = rbind(vehicle_prices, vehicle_used_prices)
+
+
+final_vehicle_prices = final_vehicle_prices %>% 
+  arrange(car_specs)
+
+View(final_vehicle_prices)
+  
+```
+
+```{r}
+# Use regular expressions to extract the components
+final_vehicle_prices <- final_vehicle_prices %>%
+  mutate(
+    Year = sub("^([0-9]{4}) .*", "\\1", car_specs),                # Extract the year
+    Make = sub("^[0-9]{4} ([^ ]+).*", "\\1", car_specs),     # Extract the make
+    ModelTrim = sub("^[0-9]{4} [A-Za-z]+ (.+)", "\\1", car_specs) # Extract the rest
+  ) %>%
+  separate(ModelTrim, into = c("Model", "Trim"), sep = " (?=[^ ]+$|)", extra = "merge", fill = "right") # Split model and trim
+
+# cleaning column names for vehicle prices
+final_vehicle_prices = clean_names(final_vehicle_prices)
+
+# filtering columns for vehicle prices
+final_vehicle_prices = final_vehicle_prices %>% 
+  select(-trim)
+
+final_vehicle_prices = final_vehicle_prices %>% 
+  select(year, make, model, new_price, used_price)
+
+# Removing dollar sign 
+final_vehicle_prices = final_vehicle_prices %>% 
+  mutate(used_price = gsub("[\\$,]", "", used_price),
+         new_price = gsub("[\\$,]", "", new_price))
+
+
+# Converting currency signs to integers
+final_vehicle_prices$used_price = as.integer(as.character(final_vehicle_prices$used_price))
+final_vehicle_prices$new_price = as.integer(as.character(final_vehicle_prices$new_price))
+
+
+
+final_vehicle_prices = final_vehicle_prices %>% 
+  group_by(year, make, model) %>% 
+  summarise(avg_used_price = round(mean(used_price), 2),
+         avg_new_price = round(mean(new_price), 2)) %>% 
+  arrange(year, make, model, avg_used_price, avg_new_price) %>% 
+  mutate(merged_used_new_price = if_else(!is.na(avg_used_price), avg_used_price, avg_new_price))
+
+
+# View the result
+View(final_vehicle_prices)
+
+
+write.csv(final_vehicle_prices, "final_vehicle_prices.csv")
+  
+```
+
+
+```{r}
+
+
+# View(final_vehicle_prices)
+# 
+# 
+# write.csv(final_vehicle_prices, "final_vehicle_prices.csv")
+  
+```
+
 
 
