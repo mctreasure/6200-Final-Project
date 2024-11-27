@@ -276,7 +276,7 @@ head(average_fuel_prices)
 head(all_data_15_24)
 ```
 
-## Joining up both datasets
+# Joining up both datasets
 
 ```{r}
 test_join = all_data_15_24 |> 
@@ -306,14 +306,9 @@ head(test_join)
 
 ```
 
-### Filling in electric fuel prices on joined dataset
+## Filling in electric fuel prices on joined dataset
 
 ```{r}
-
-View(test_join)
-
-View(test_join %>% 
-       filter(fuel_type == "electric/premium"))
 
 test_join = test_join %>% 
   filter(!fuel_type %in% c("e85", "natural gas"))
@@ -326,7 +321,7 @@ test_join = test_join %>%
   ))
 ```
 
-### Creating electric/regular and electric/premium fuel prices on joined dataset
+## Creating electric/regular and electric/premium fuel prices on joined dataset
 
 ```{r}
 
@@ -345,7 +340,7 @@ regular_price <- test_join %>%
 
 ```
 
-### Filling in electric/premium/regular fuel prices on joined dataset
+## Filling in electric/premium/regular fuel prices on joined dataset
 
 ```{r}
 
@@ -392,67 +387,67 @@ test_join %>%
 
 ## Used Car Prices
 ```{r}
-
-# used vehicle prices
-base_url = "https://www.autotrader.ca/cars/on/guelph/?rcp=100&rcs=%d&srt=8&yRng=2016%%2C2024&prx=100&prv=Ontario&loc=N1G%%202W1&fuel=Diesel%%2CElectric%%2CFlex%%20Fuel%%2CGas%%2FElectric%%20Hybrid%%2CGasoline%%2CUnknown&hprc=True&wcp=True&sts=Used&inMarket=advancedSearch"
-
-# number of pages to scrape
-num_pages = 169
-
-# Generating list of URLs for all pages
-page_urls = sprintf(base_url, seq(0, (num_pages - 1) * 100, by = 100))
-
-  
-# creating a function to scrape data from a single page
-scrape_page = function(url){
-  page = read_html(url)
-  
-  # Extracting desired elements
-  car_make_model = page %>% html_elements("span.title-with-trim") %>% html_text(trim = TRUE)
-  car_prices = page %>% html_elements("span.price-amount") %>% html_text(trim = TRUE)
-  car_mileage = page %>% html_elements("span.odometer-proximity") %>% html_text(trim = TRUE)
-  
-  # Check mileage is missing for some vehicles and fill with NAs if missing
-  if (length(car_mileage) < length(car_make_model)) {
-    car_mileage = c(car_mileage, rep(NA, length(car_make_model) - length(car_mileage)))
-  }
-  
-  # Log the URL and number of items found
-  cat("Scraping:", url, "\n")
-  cat("Titles found:", length(car_make_model), " Prices found:", length(car_prices), 
-      " Mileage found:", length(car_mileage), "\n")
-  
-  # Handle empty results
-  if (length(car_make_model) == 0 && length(car_prices) == 0) {
-    cat("No data found for:", url, "\n")
-    return(data.frame(car_make_model = character(), price = character(),
-                      car_mileage = character()))
-  }
-  
-  # combining into a dataframe
-  data.frame(
-    car_specs = car_make_model,
-    price = car_prices,
-    mileage = car_mileage,
-    stringAsFactors = FALSE
-  )
-}
-
-
-# Scraping all pages and combine results
-vehicle_used_prices = map_dfr(page_urls, function(url){
-  
-  # Delay before each request
-  Sys.sleep(2)
-  
-  # Call scrape_page
-  scrape_page(url)
-})
-
-
-
-# Viewing combined data
-View(vehicle_used_prices)
+# 
+# # used vehicle prices
+# base_url = "https://www.autotrader.ca/cars/on/guelph/?rcp=100&rcs=%d&srt=8&yRng=2016%%2C2024&prx=100&prv=Ontario&loc=N1G%%202W1&fuel=Diesel%%2CElectric%%2CFlex%%20Fuel%%2CGas%%2FElectric%%20Hybrid%%2CGasoline%%2CUnknown&hprc=True&wcp=True&sts=Used&inMarket=advancedSearch"
+# 
+# # number of pages to scrape
+# num_pages = 169
+# 
+# # Generating list of URLs for all pages
+# page_urls = sprintf(base_url, seq(0, (num_pages - 1) * 100, by = 100))
+# 
+#   
+# # creating a function to scrape data from a single page
+# scrape_page = function(url){
+#   page = read_html(url)
+#   
+#   # Extracting desired elements
+#   car_make_model = page %>% html_elements("span.title-with-trim") %>% html_text(trim = TRUE)
+#   car_prices = page %>% html_elements("span.price-amount") %>% html_text(trim = TRUE)
+#   car_mileage = page %>% html_elements("span.odometer-proximity") %>% html_text(trim = TRUE)
+#   
+#   # Check mileage is missing for some vehicles and fill with NAs if missing
+#   if (length(car_mileage) < length(car_make_model)) {
+#     car_mileage = c(car_mileage, rep(NA, length(car_make_model) - length(car_mileage)))
+#   }
+#   
+#   # Log the URL and number of items found
+#   cat("Scraping:", url, "\n")
+#   cat("Titles found:", length(car_make_model), " Prices found:", length(car_prices), 
+#       " Mileage found:", length(car_mileage), "\n")
+#   
+#   # Handle empty results
+#   if (length(car_make_model) == 0 && length(car_prices) == 0) {
+#     cat("No data found for:", url, "\n")
+#     return(data.frame(car_make_model = character(), price = character(),
+#                       car_mileage = character()))
+#   }
+#   
+#   # combining into a dataframe
+#   data.frame(
+#     car_specs = car_make_model,
+#     price = car_prices,
+#     mileage = car_mileage,
+#     stringAsFactors = FALSE
+#   )
+# }
+# 
+# 
+# # Scraping all pages and combine results
+# vehicle_used_prices = map_dfr(page_urls, function(url){
+#   
+#   # Delay before each request
+#   Sys.sleep(2)
+#   
+#   # Call scrape_page
+#   scrape_page(url)
+# })
+# 
+# 
+# 
+# # Viewing combined data
+# View(vehicle_used_prices)
 
 
 ```
@@ -463,28 +458,28 @@ View(vehicle_used_prices)
 
 ```{r}
 
-# new vehicle prices
-base_url = "https://www.autotrader.ca/cars/on/guelph/?rcp=100&rcs=%d&srt=4&yRng=2016%%2C2024&prx=100&prv=Ontario&loc=N1G%%202W1&fuel=Diesel%%2CElectric%%2CFlex%%20Fuel%%2CGas%%2FElectric%%20Hybrid%%2CGasoline%%2CUnknown&hprc=True&wcp=True&sts=New&showcpo=1&inMarket=advancedSearch"
-
-
-
-# Generating list of URLs for all pages
-page_urls = sprintf(base_url, seq(0, (num_pages - 1) * 100, by = 100))
-
-
-# Scraping all pages and combine results
-vehicle_prices = map_dfr(page_urls, function(url){
-  
-  # Delay before each request
-  Sys.sleep(4)
-  
-  # Call scrape_page
-  scrape_page(url)
-})
-
-
-# Viewing combined data
-View(vehicle_prices)
+# # new vehicle prices
+# base_url = "https://www.autotrader.ca/cars/on/guelph/?rcp=100&rcs=%d&srt=4&yRng=2016%%2C2024&prx=100&prv=Ontario&loc=N1G%%202W1&fuel=Diesel%%2CElectric%%2CFlex%%20Fuel%%2CGas%%2FElectric%%20Hybrid%%2CGasoline%%2CUnknown&hprc=True&wcp=True&sts=New&showcpo=1&inMarket=advancedSearch"
+# 
+# 
+# 
+# # Generating list of URLs for all pages
+# page_urls = sprintf(base_url, seq(0, (num_pages - 1) * 100, by = 100))
+# 
+# 
+# # Scraping all pages and combine results
+# vehicle_prices = map_dfr(page_urls, function(url){
+#   
+#   # Delay before each request
+#   Sys.sleep(4)
+#   
+#   # Call scrape_page
+#   scrape_page(url)
+# })
+# 
+# 
+# # Viewing combined data
+# View(vehicle_prices)
 
 
 
@@ -530,18 +525,16 @@ final_vehicle_prices = rbind(vehicle_prices, vehicle_used_prices)
 final_vehicle_prices = final_vehicle_prices %>% 
   arrange(car_specs)
 
-head(final_vehicle_prices)
+
   
 ```
+
+
 
 ```{r}
 
 # vehicle makes with two words in a list
 two_words_vehicle_make =  c("Aston Martin", "Alfa Romeo", "Land Rover")
-
-# one_word_vehicle_model = c("ILX", "TLX", "")
-
-two_word_vehicle_model = c("RDX AWD", "MDX SH-AWD", "TLX FWD", "TLX SH-AWD", "124 Spider", "1500 4WD", "1500 4x4", "")
 
 
 
@@ -549,17 +542,17 @@ final_vehicle_prices =  final_vehicle_prices %>%
   mutate(
     Year = sub("^([0-9]{4}) .*", "\\1", car_specs), # Extract the year
     Make = case_when(
-      grepl(paste(two_words_vehicle_make, collapse = "|"), car_specs) ~ 
+      grepl(paste(two_words_vehicle_make, collapse = "|"), car_specs) ~
         sub("^[0-9]{4} (([^ ]+ ){1}[^ ]+).*", "\\1", car_specs), # Extract exactly two words for Make
       TRUE ~ sub("^[0-9]{4} ([^ ]+).*", "\\1", car_specs)        # For single-word makes
     ),
-    
+
     ModelTrim = case_when(
       grepl(paste(two_words_vehicle_make, collapse = "|"), car_specs) ~
         sub("^[0-9]{4} (([^ ]+ ){2})(.+)", "\\3", car_specs), # Extract the rest for two-word makes
       TRUE ~ sub("^[0-9]{4} [^ ]+ (.+)", "\\1", car_specs)    # Extract model and trim for single-word makes
     ),
-    
+
     # ModelTrim = str_replace_all(ModelTrim, "[-/|~]", " ") # Replace slashes and dashes with spaces
   ) %>%
   separate(ModelTrim, into = c("Model", "Trim"), sep = " (?=[^ ]+$|-|/|~)", extra = "merge", fill = "right") # Split model and trim
@@ -567,6 +560,8 @@ final_vehicle_prices =  final_vehicle_prices %>%
 
 # cleaning column names for vehicle prices
 final_vehicle_prices = clean_names(final_vehicle_prices)
+
+View(final_vehicle_prices)
 
 
 # Convert all character columns to UTF-8 encoding in both datasets
@@ -577,9 +572,7 @@ all_data_15_24 <- all_data_15_24 %>%
   mutate(across(where(is.character), ~ iconv(., from = "", to = "UTF-8")))
 
 
-# 
-# temp = unique(all_data_15_24)
-# View(temp) all_data_15_24
+
 
 
 # Perform approximate string matching
@@ -589,48 +582,39 @@ mapped_data <- fuzzyjoin::stringdist_join(
   method = "jw",
   max_dist = 0.27,
   mode = "left",
-  distance_col = "dist" 
+  distance_col = "dist"
 ) %>%
   group_by(model.x) %>%
   slice_min(order_by = dist, n = 1) %>%
   ungroup() %>%
   select(original_model = model.x, matched_model = model.y)
 
-
-# View(mapped_data)
+# View(test_join)
 
 
 
 unique_rows = unique(mapped_data)
 
-View(unique_rows)
-sum(!is.na(unique_rows$matched_model))
+sum(is.na(unique_rows$matched_model))
 
 
 # Updating 'final_vehicle_prices' dataset with matched model
-final_vehicle_prices = final_vehicle_prices %>% 
-  left_join(unique_rows, by = c("model" = "original_model")) %>% 
-  mutate(model = coalesce(matched_model, model)) %>% 
+final_vehicle_prices = final_vehicle_prices %>%
+  left_join(unique_rows, by = c("model" = "original_model")) %>%
+  mutate(model = coalesce(matched_model, model)) %>%
   select(-matched_model)
 
 
-View(final_vehicle_prices %>% 
-       arrange(make, model, year))
 
 
-
-# # filtering columns for vehicle prices
-# final_vehicle_prices = final_vehicle_prices %>% 
-#   select(-trim)
-
-final_vehicle_prices = final_vehicle_prices %>% 
+final_vehicle_prices = final_vehicle_prices %>%
   select(year, make, model, new_price, used_price, mileage)
 
-final_vehicle_prices = final_vehicle_prices %>% 
+final_vehicle_prices = final_vehicle_prices %>%
   rename(model_year = year)
 
-# Removing dollar sign 
-final_vehicle_prices = final_vehicle_prices %>% 
+# Removing dollar sign
+final_vehicle_prices = final_vehicle_prices %>%
   mutate(used_price = gsub("[\\$,]", "", used_price),
          new_price = gsub("[\\$,]", "", new_price),
          mileage = gsub("[\\km,]", "", mileage))
@@ -643,59 +627,81 @@ final_vehicle_prices$mileage = as.integer(as.character(final_vehicle_prices$mile
 
 
 
-final_vehicle_prices = final_vehicle_prices %>% 
-  group_by(model_year, make, model) %>% 
+final_vehicle_prices = final_vehicle_prices %>%
+  group_by(model_year, make, model) %>%
   summarise(avg_used_price = round(mean(used_price), 2),
          avg_new_price = round(mean(new_price), 2),
-         avg_mileage = round(mean(mileage))) %>% 
-  arrange(model_year, make, model, avg_used_price, avg_new_price, avg_mileage) %>% 
-  mutate(merged_used_new_price = if_else(!is.na(avg_used_price), avg_used_price, avg_new_price))
-
-
-# View the result
-View(final_vehicle_prices)
-
-vehicle_used_prices = final_vehicle_prices %>% filter(!is.na(avg_used_price))
-vehicle_new_prices = final_vehicle_prices %>% filter(!is.na(avg_new_price))
-
-vehicle_used_prices = vehicle_used_prices %>% 
-  rename(
-   model_year_old = model_year
-  )
-
-vehicle_new_prices = vehicle_new_prices %>% 
-  rename(
-   model_year_new = model_year
-  )
-
-View(vehicle_new_prices)
-
-final_vehicle_prices = vehicle_new_prices %>% 
-  filter(model_year_new >= 2016)|> 
-  select(model_year_new, make, model, avg_new_price) %>% 
-  full_join(vehicle_used_prices %>% select(model_year_old, make, model, avg_used_price, avg_mileage),
-            by = c("make", "model")) %>% 
-  arrange(make, model) %>% 
-  select(model_year_new, model_year_old, make, model, avg_new_price, avg_used_price, avg_mileage)
-
-
-write.csv(final_vehicle_prices, "final_vehicle_prices.csv")
+         avg_mileage = round(mean(mileage))) %>%
+  arrange(model_year, make, model, avg_used_price, avg_new_price, avg_mileage)
   
 ```
 
 
+## Filling in Missing Values For New & Used Prices & Mileage
 ```{r}
 
-# final_vehicle_prices$model_year = as.integer(final_vehicle_prices$model_year)
+# Filling missing values for mileage with zero where vehicles are new
+final_vehicle_prices = final_vehicle_prices %>% 
+  group_by(model_year, make, model) %>% 
+  mutate(avg_mileage = ifelse(is.na(avg_mileage) & model_year >= 2023, 0, median(avg_mileage, na.rm = TRUE))) %>% 
+  ungroup()
 
+
+# Estimates of new vehicle prices for older models
+final_vehicle_prices = final_vehicle_prices %>% 
+  group_by(make, model) %>% 
+  mutate(avg_new_price = ifelse(is.na(avg_new_price), median(avg_new_price, na.rm = TRUE), avg_new_price)) %>% 
+  ungroup()%>%
+  group_by(make) %>%
+  mutate(avg_new_price = ifelse(is.na(avg_new_price), median(avg_new_price, na.rm = TRUE), avg_new_price)) %>%
+  ungroup()
+
+
+
+# Remaining Models are mostly expensive makes or are not vehicle types our users would care about
+final_vehicle_prices %>%
+  filter(is.na(final_vehicle_prices$avg_new_price))%>%
+  select(make) %>% 
+  distinct()
+
+
+
+# Filling remaining models based on the mileage values for those models
+final_vehicle_prices = final_vehicle_prices %>%
+  mutate(
+    avg_new_price = case_when(is.na(avg_new_price) & avg_mileage<50000 ~ avg_used_price + 50000,
+                              is.na(avg_new_price) & avg_mileage >= 50000 & avg_mileage < 200000 ~ avg_used_price + 75000,
+                              is.na(avg_new_price) & avg_mileage >= 200000 ~ avg_used_price + 100000,
+                              TRUE ~ avg_new_price))
+
+
+# Filling used prices with zeros where the model is relatively new and would not have any mileage on it.
+final_vehicle_prices = final_vehicle_prices %>% 
+  mutate(
+    avg_used_price = case_when(is.na(avg_used_price) ~ 0,
+                               TRUE ~ avg_used_price)
+  )
+
+
+View(final_vehicle_prices)
+
+# write.csv(final_vehicle_prices, "final_vehicle_prices.csv")
+```
+
+# Joining All Three Datasets
+```{r}
+final_vehicle_prices <- final_vehicle_prices %>%
+  mutate(model_year = as.numeric(model_year))
+
+# joining fuel consumption ratings, fuel price data & vehicle price data
 complete_dataset = test_join %>% 
   filter(model_year >= 2016)|> 
   left_join(final_vehicle_prices,
-            by = c("make", "model")) 
+            by = c("model_year", "make", "model")) 
 
-
+# regrouping and selecting preferred columns
 complete_dataset = complete_dataset %>% 
-  select(model_year_new, model_year_old, make, model, vehicle_class, avg_used_price, avg_new_price, avg_mileage, motor_kw, engine_size_l,
+  select(model_year, make, model, vehicle_class, avg_used_price, avg_new_price, avg_mileage, motor_kw, engine_size_l,
          cylinders, transmission, fuel_type, year, month, average_fuel_price,
          avg_fuel_price_yr, avg_fuel_type_price, recharge_time_h, city_l_100_km, 
          highway_l_100_km, combined_l_100_km, city_kwh_100_km, highway_kwh_100_km, 
@@ -703,8 +709,15 @@ complete_dataset = complete_dataset %>%
          co2_rating, smog_rating)
 
 
+# removing columns without vehicle price information
+complete_dataset = complete_dataset %>%
+  filter(!is.na(avg_used_price))
+
 
 View(complete_dataset)
+
+# View(complete_dataset %>% 
+#   filter(fuel_type == "electric/premium" | fuel_type == "electric" | fuel_type == "electric/regular"))
 
 
 # write.csv(complete_dataset, "vehicle_fuel_prices.csv")
