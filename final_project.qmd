@@ -381,11 +381,75 @@ test_join %>%
   select(model_year, make)
 
 
+# Capturing the first 4 words in the 'model' column and replace it in the column
+test_join$model <- str_extract(test_join$model, paste0("\\b(\\w+\\b\\s*){1,4}"))
+
 # write.csv(unique_models, "unique_models.csv")
 ```
+
+```{r}
+
+# models_unique = unique(test_join$model)
+# 
+# models = data.frame(models_unique)
+# 
+# # Converting columns to UTF-8 encoding
+# models$models_unique = iconv(models$models_unique, from = "latin1", to = "UTF-8", sub = "")
+# 
+# # creating word count column
+# models$word_count = sapply(strsplit(as.character(models$models_unique), " "), length)
+# 
+# # Arranging dataframe by word count in descending order
+# models = models[order(-models$word_count), ]
+# 
+# # dropping models with a word count of 1 
+# models = models[models$word_count > 1, ]
+
+
+
+
+
+
+
+# # obtaining the unique word counts in descending order
+# unique_word_counts = sort(unique(models$word_count), decreasing = TRUE)
+# 
+# 
+# # creating an empty dataframe with a column for each unique word count
+# result = data.frame(matrix(NA, nrow = nrow(models), ncol = length(unique_word_counts)))
+# colnames(result) = paste0(unique_word_counts, "_models")
+# 
+# 
+# # Populating columns with models matching each word count
+# for (wc in unique_word_counts) {
+#   result[[paste0(wc, "_models")]] = ifelse(models$word_count == wc, models$models_unique, NA)
+# }
+# 
+# 
+# # removing empty rows (where all columns are NA)
+# result = result[rowSums(!is.na(result)) > 0, ]
+# 
+# 
+# View(result)
+# 
+# # creating a list to store models grouped by word count
+# models_list = lapply(unique_word_counts, function(wc) {
+#   models$models_unique[models$word_count == wc]
+# })
+# 
+# # Assigning names to list based on word counts
+# names(models_list) = paste0(unique_word_counts, "_models")
+
+
+
+```
+
 # Scraping Vehicle Pricing Data From Autotrader
 
 ## Used Car Prices
+
+You can uncomment the code to run the scraper. However, you do not need to as you can read in the data scraped from AutoTradaer's website.
+
 ```{r}
 # 
 # # used vehicle prices
@@ -452,8 +516,6 @@ test_join %>%
 
 ```
 
-
-
 ## New Vehicle Prices
 
 ```{r}
@@ -489,7 +551,6 @@ test_join %>%
 # 
 # car_prices
 ```
-
 
 ```{r}
 
@@ -529,13 +590,10 @@ final_vehicle_prices = final_vehicle_prices %>%
   
 ```
 
-
-
 ```{r}
 
 # vehicle makes with two words in a list
 two_words_vehicle_make =  c("Aston Martin", "Alfa Romeo", "Land Rover")
-
 
 
 final_vehicle_prices =  final_vehicle_prices %>%
@@ -558,29 +616,31 @@ final_vehicle_prices =  final_vehicle_prices %>%
   separate(ModelTrim, into = c("Model", "Trim"), sep = " (?=[^ ]+$|-|/|~)", extra = "merge", fill = "right") # Split model and trim
 
 
+
 # cleaning column names for vehicle prices
 final_vehicle_prices = clean_names(final_vehicle_prices)
 
-View(final_vehicle_prices)
 
+# letting model select first four words
+final_vehicle_prices$model = str_extract(final_vehicle_prices$model, paste0("\\b([\\w-]+\\b\\s*){1,4}"))
 
 # Convert all character columns to UTF-8 encoding in both datasets
 final_vehicle_prices <- final_vehicle_prices %>%
   mutate(across(where(is.character), ~ iconv(., from = "", to = "UTF-8")))
 
-all_data_15_24 <- all_data_15_24 %>%
+test_join <- test_join %>%
   mutate(across(where(is.character), ~ iconv(., from = "", to = "UTF-8")))
 
-
+# all_data_15_24
 
 
 
 # Perform approximate string matching
 mapped_data <- fuzzyjoin::stringdist_join(
-  final_vehicle_prices, all_data_15_24,
+  final_vehicle_prices, test_join,
   by = "model",
   method = "jw",
-  max_dist = 0.27,
+  max_dist = 0.235,
   mode = "left",
   distance_col = "dist"
 ) %>%
@@ -589,11 +649,10 @@ mapped_data <- fuzzyjoin::stringdist_join(
   ungroup() %>%
   select(original_model = model.x, matched_model = model.y)
 
-# View(test_join)
-
 
 
 unique_rows = unique(mapped_data)
+
 
 sum(is.na(unique_rows$matched_model))
 
@@ -605,13 +664,21 @@ final_vehicle_prices = final_vehicle_prices %>%
   select(-matched_model)
 
 
+# Updating 'test_join' dataset with matched model
+test_join = test_join %>%
+  left_join(unique_rows, by = c("model" = "original_model")) %>%
+  mutate(model = coalesce(matched_model, model)) %>%
+  select(-matched_model)
 
 
+# selecting specific columns
 final_vehicle_prices = final_vehicle_prices %>%
   select(year, make, model, new_price, used_price, mileage)
 
+# renaming year to model_year
 final_vehicle_prices = final_vehicle_prices %>%
   rename(model_year = year)
+
 
 # Removing dollar sign
 final_vehicle_prices = final_vehicle_prices %>%
@@ -636,8 +703,8 @@ final_vehicle_prices = final_vehicle_prices %>%
   
 ```
 
-
 ## Filling in Missing Values For New & Used Prices & Mileage
+
 ```{r}
 
 # Filling missing values for mileage with zero where vehicles are new
@@ -683,12 +750,12 @@ final_vehicle_prices = final_vehicle_prices %>%
   )
 
 
-View(final_vehicle_prices)
 
 # write.csv(final_vehicle_prices, "final_vehicle_prices.csv")
 ```
 
 # Joining All Three Datasets
+
 ```{r}
 final_vehicle_prices <- final_vehicle_prices %>%
   mutate(model_year = as.numeric(model_year))
@@ -716,12 +783,6 @@ complete_dataset = complete_dataset %>%
 
 View(complete_dataset)
 
-# View(complete_dataset %>% 
-#   filter(fuel_type == "electric/premium" | fuel_type == "electric" | fuel_type == "electric/regular"))
 
-
-# write.csv(complete_dataset, "vehicle_fuel_prices.csv")
+write.csv(complete_dataset, "vehicle_fuel_prices.csv")
 ```
-
-
-
