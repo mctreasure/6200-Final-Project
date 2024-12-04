@@ -2,7 +2,6 @@ library(shiny)
 library(shinyjs)
 library(dplyr)
 
-# more work to come on appeal
 
 # loading in the complete dataset
 complete_dataset = read.csv("vehicle_prices_nafilled.csv")

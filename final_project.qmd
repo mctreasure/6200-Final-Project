@@ -82,7 +82,7 @@ data_hybrid_15_24 = data_hybrid_15_24 %>%
          fuel_type = fuel_type_1,
          range_km = range_2_km)
 
-
+# creating and arranging columns to fit desired dataframes
 data_hybrid_15_24 = add_column(data_hybrid_15_24, city_kwh_100_km = NA, .after = 13)
 data_hybrid_15_24 = add_column(data_hybrid_15_24, highway_kwh_100_km = NA, .after = 14)
 data_hybrid_15_24 = add_column(data_hybrid_15_24, combined_kwh_100_km = NA, .after = 15)
