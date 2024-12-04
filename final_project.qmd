@@ -19,11 +19,7 @@ editor: visual
 
 ```{r, echo = FALSE, include=FALSE}
 library(janitor)
-library(lubridate)
-library(purrr)
-library(rvest)
 library(tidyverse)
-library(knitr)
 library(readxl)
 library(dplyr)
 library(ggplot2)
@@ -37,18 +33,8 @@ library(stringdist)
 library(httr)
 library(xml2)
 library(rvest)
-library(jsonlite)
-library(purrr)
 ```
 
-Change this to fit your directory
-
-```{r}
-knitr::opts_chunk$set(echo = TRUE)
-
-# Change this to fit your directory
-knitr::opts_knit$set(root.dir = "C:/Users/ekf98/OneDrive/Documents/UofG Courses/Term 1 Fall 2024/Data Visualization/Assignments/Final Project/6200-Final-Project/")
-```
 
 # Reading, Cleaning & Preparing Fuel Comsumption Dataset
 
@@ -65,10 +51,6 @@ data24 = read.csv("fuel_consumption/2024.csv")
 data_fuel_15_24 = rbind(data15_19, data20, data21, data22, data23, data24)
 
 data_fuel_15_24 = clean_names(data_fuel_15_24)
-
-# # renmaing some columns
-# data_fuel_15_24 = data_fuel_15_24 %>%
-#   rename(range_km = combined_mpg.1)
 
 
 # Creating the same column names to ensure they match across ev/hybrid and fuel datasets
@@ -160,7 +142,7 @@ all_data_15_24 = all_data_15_24 %>%
   arrange(model_year, make, model, vehicle_class)
 
 
-#  Recategorizing categories on fuel type
+#  Re-categorizing categories on fuel type
 all_data_15_24$fuel_type = fct_recode(all_data_15_24$fuel_type,
                                       "regular" = "X",
                                       "electric" = "B",
@@ -176,7 +158,7 @@ all_data_15_24$fuel_type = fct_recode(all_data_15_24$fuel_type,
 
 
 # Saving dataset to an Excel file
-# write.csv(all_data_15_24, "all_data_15_24.csv")
+write.csv(all_data_15_24, "all_data_15_24.csv")
 
 head(all_data_15_24)
 
@@ -190,10 +172,8 @@ Specify this to your path
 
 ```{r, include=FALSE}
 
-fuel_prices <- read_csv("C:/Users/ekf98/OneDrive/Documents/UofG Courses/Term 1 Fall 2024/Data Visualization/Assignments/Final Project/6200-Final-Project/18100001.csv")
-```
+fuel_prices <- read_csv("18100001.csv")
 
-```{r}
 head(fuel_prices)
 ```
 
@@ -206,7 +186,7 @@ head(fuel_prices)
 
 ```{r}
 fuel_prices <- fuel_prices %>% 
-  filter(ref_date >= "2015-01")
+  filter(ref_date >= "2016-01")
 
 fuel_prices
 ```
@@ -272,15 +252,18 @@ average_fuel_prices = fuel_prices |>
 
 
 head(average_fuel_prices)
-
-head(all_data_15_24)
 ```
 
 # Joining up both datasets
 
 ```{r}
+# test_join = all_data_15_24 |> 
+#   left_join(average_fuel_prices %>% filter(year >= 2020),
+#             by = c("fuel_type")) 
+
+
 test_join = all_data_15_24 |> 
-  left_join(average_fuel_prices %>% filter(year >= 2020),
+  left_join(average_fuel_prices,
             by = c("fuel_type")) 
 
 # creating a column to capture average yearly fuel prices by fuel type
@@ -317,7 +300,7 @@ test_join = test_join %>%
 # I fill 'electric' fuel type price with average public charging price in 2024
 test_join = test_join %>% 
   mutate(average_fuel_price = ifelse(
-    fuel_type == "electric", 40, average_fuel_price
+    fuel_type == "electric", 43, average_fuel_price
   ))
 ```
 
@@ -348,29 +331,30 @@ regular_price <- test_join %>%
 test_join = test_join %>%
   mutate(
     average_fuel_price = case_when(
-      fuel_type == "electric/premium" ~ (premium_price + 40) / 2,
-      fuel_type == "electric/regular" ~ (regular_price + 40) / 2,
+      fuel_type == "electric/premium" ~ (premium_price + 43) / 2,
+      fuel_type == "electric/regular" ~ (regular_price + 43) / 2,
       TRUE ~ average_fuel_price
   ),
   
   avg_fuel_price_yr = case_when(
-      fuel_type == "electric/premium" ~ (premium_price + 40) / 2,
-      fuel_type == "electric/regular" ~ (regular_price + 40) / 2,
+      fuel_type == "electric/premium" ~ (premium_price + 43) / 2,
+      fuel_type == "electric/regular" ~ (regular_price + 43) / 2,
+      fuel_type == "electric" ~ 43,
       TRUE ~ avg_fuel_price_yr),
   
   avg_fuel_type_price = case_when(
-      fuel_type == "electric/premium" ~ (premium_price + 40) / 2,
-      fuel_type == "electric/regular" ~ (regular_price + 40) / 2,
+      fuel_type == "electric/premium" ~ (premium_price + 43) / 2,
+      fuel_type == "electric/regular" ~ (regular_price + 43) / 2,
+      fuel_type == "electric" ~ 43,
       TRUE ~ avg_fuel_type_price)
   )
+
+write.csv(test_join, "fuel_consumption_prices.csv")
 
 tail(test_join)
 ```
 
-```{r}
-# Saving dataset to an Excel file
-# write.csv(test_join, "fuel_consumption_prices.csv")
-```
+
 
 ```{r}
 # creating a column to capture average yearly fuel prices by fuel type
@@ -385,63 +369,6 @@ test_join %>%
 test_join$model <- str_extract(test_join$model, paste0("\\b(\\w+\\b\\s*){1,4}"))
 
 # write.csv(unique_models, "unique_models.csv")
-```
-
-```{r}
-
-# models_unique = unique(test_join$model)
-# 
-# models = data.frame(models_unique)
-# 
-# # Converting columns to UTF-8 encoding
-# models$models_unique = iconv(models$models_unique, from = "latin1", to = "UTF-8", sub = "")
-# 
-# # creating word count column
-# models$word_count = sapply(strsplit(as.character(models$models_unique), " "), length)
-# 
-# # Arranging dataframe by word count in descending order
-# models = models[order(-models$word_count), ]
-# 
-# # dropping models with a word count of 1 
-# models = models[models$word_count > 1, ]
-
-
-
-
-
-
-
-# # obtaining the unique word counts in descending order
-# unique_word_counts = sort(unique(models$word_count), decreasing = TRUE)
-# 
-# 
-# # creating an empty dataframe with a column for each unique word count
-# result = data.frame(matrix(NA, nrow = nrow(models), ncol = length(unique_word_counts)))
-# colnames(result) = paste0(unique_word_counts, "_models")
-# 
-# 
-# # Populating columns with models matching each word count
-# for (wc in unique_word_counts) {
-#   result[[paste0(wc, "_models")]] = ifelse(models$word_count == wc, models$models_unique, NA)
-# }
-# 
-# 
-# # removing empty rows (where all columns are NA)
-# result = result[rowSums(!is.na(result)) > 0, ]
-# 
-# 
-# View(result)
-# 
-# # creating a list to store models grouped by word count
-# models_list = lapply(unique_word_counts, function(wc) {
-#   models$models_unique[models$word_count == wc]
-# })
-# 
-# # Assigning names to list based on word counts
-# names(models_list) = paste0(unique_word_counts, "_models")
-
-
-
 ```
 
 # Scraping Vehicle Pricing Data From Autotrader
@@ -751,7 +678,7 @@ final_vehicle_prices = final_vehicle_prices %>%
 
 
 
-# write.csv(final_vehicle_prices, "final_vehicle_prices.csv")
+write.csv(final_vehicle_prices, "final_vehicle_prices.csv")
 ```
 
 # Joining All Three Datasets
@@ -766,23 +693,68 @@ complete_dataset = test_join %>%
   left_join(final_vehicle_prices,
             by = c("model_year", "make", "model")) 
 
-# regrouping and selecting preferred columns
-complete_dataset = complete_dataset %>% 
-  select(model_year, make, model, vehicle_class, avg_used_price, avg_new_price, avg_mileage, motor_kw, engine_size_l,
-         cylinders, transmission, fuel_type, year, month, average_fuel_price,
-         avg_fuel_price_yr, avg_fuel_type_price, recharge_time_h, city_l_100_km, 
-         highway_l_100_km, combined_l_100_km, city_kwh_100_km, highway_kwh_100_km, 
-         combined_kwh_100_km, range_km, combined_mpg, co2_emissions_g_km, 
-         co2_rating, smog_rating)
-
 
 # removing columns without vehicle price information
 complete_dataset = complete_dataset %>%
   filter(!is.na(avg_used_price))
 
 
-View(complete_dataset)
+head(complete_dataset)
 
 
 write.csv(complete_dataset, "vehicle_fuel_prices.csv")
+```
+
+
+```{r}
+fill_dataset <- function(df) {
+  df[] <- lapply(df, function(col) {
+    if (is.numeric(col)) {
+      # Replace NA with 0 for numeric columns
+      col[is.na(col)] <- 0
+    } else {
+      # Replace NA with "NA" for categorical columns
+      col[is.na(col)] <- "NA"
+    }
+    return(col)
+  })
+  return(df)
+}
+
+
+# Apply the function to the dataset
+complete_dataset <- fill_dataset(complete_dataset)
+
+
+# Grouping transmission information into auto & manual & fuel types into appropriate for app convenience
+complete_dataset <- complete_dataset %>% 
+  mutate(
+    transmission_type = ifelse(grepl("^A", transmission), "Automatic", "Manual"),
+    
+    fuel_type_choice = case_when(
+      fuel_type %in% c("electric/premium", "electric/regular") ~ "Hybrid",
+      fuel_type == "electric" ~ "Electric",
+      fuel_type %in% c("regular", "premium", "diesel") ~ "gas/diesel",
+      TRUE ~ fuel_type)
+  )
+
+
+
+# regrouping and selecting preferred columns
+complete_dataset = complete_dataset %>% 
+  select(model_year, make, model, vehicle_class, avg_used_price, avg_new_price, 
+         avg_mileage, motor_kw, engine_size_l, cylinders, transmission, transmission_type,
+         fuel_type, fuel_type_choice, year, month, average_fuel_price,
+         avg_fuel_price_yr, avg_fuel_type_price, recharge_time_h, city_l_100_km, 
+         highway_l_100_km, combined_l_100_km, city_kwh_100_km, highway_kwh_100_km, 
+         combined_kwh_100_km, range_km, combined_mpg, co2_emissions_g_km, 
+         co2_rating, smog_rating)
+
+
+
+head(complete_dataset)
+```
+
+```{r}
+write.csv(complete_dataset, "vehicle_prices_nafilled.csv")
 ```
