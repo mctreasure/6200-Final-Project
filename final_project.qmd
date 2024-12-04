@@ -71,7 +71,7 @@ tail(data_fuel_15_24)
 data_ev_15_24 = read_xlsx("fuel_consumption/Battery_Electric_2015_2024.xlsx")
 data_hybrid_15_24 = read.csv("fuel_consumption/Plugin_Hybrid_2015_2024.csv")
 
-
+# formatting column headings in snake case
 data_hybrid_15_24 = clean_names(data_hybrid_15_24)
 
 data_hybrid_15_24 = data_hybrid_15_24 %>% select(-combined_le_100_km, -range_1_km,
