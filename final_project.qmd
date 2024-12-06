@@ -35,7 +35,6 @@ library(xml2)
 library(rvest)
 ```
 
-
 # Reading, Cleaning & Preparing Fuel Comsumption Dataset
 
 ```{r}
@@ -354,8 +353,6 @@ write.csv(test_join, "fuel_consumption_prices.csv")
 tail(test_join)
 ```
 
-
-
 ```{r}
 # creating a column to capture average yearly fuel prices by fuel type
 test_join %>% 
@@ -367,8 +364,6 @@ test_join %>%
 
 # Capturing the first 4 words in the 'model' column and replace it in the column
 test_join$model <- str_extract(test_join$model, paste0("\\b(\\w+\\b\\s*){1,4}"))
-
-# write.csv(unique_models, "unique_models.csv")
 ```
 
 # Scraping Vehicle Pricing Data From Autotrader
@@ -517,7 +512,7 @@ final_vehicle_prices = final_vehicle_prices %>%
   
 ```
 
-```{r}
+```{r, message=FALSE}
 
 # vehicle makes with two words in a list
 two_words_vehicle_make =  c("Aston Martin", "Alfa Romeo", "Land Rover")
@@ -558,44 +553,6 @@ final_vehicle_prices <- final_vehicle_prices %>%
 test_join <- test_join %>%
   mutate(across(where(is.character), ~ iconv(., from = "", to = "UTF-8")))
 
-# all_data_15_24
-
-
-
-# Perform approximate string matching
-mapped_data <- fuzzyjoin::stringdist_join(
-  final_vehicle_prices, test_join,
-  by = "model",
-  method = "jw",
-  max_dist = 0.235,
-  mode = "left",
-  distance_col = "dist"
-) %>%
-  group_by(model.x) %>%
-  slice_min(order_by = dist, n = 1) %>%
-  ungroup() %>%
-  select(original_model = model.x, matched_model = model.y)
-
-
-
-unique_rows = unique(mapped_data)
-
-
-sum(is.na(unique_rows$matched_model))
-
-
-# Updating 'final_vehicle_prices' dataset with matched model
-final_vehicle_prices = final_vehicle_prices %>%
-  left_join(unique_rows, by = c("model" = "original_model")) %>%
-  mutate(model = coalesce(matched_model, model)) %>%
-  select(-matched_model)
-
-
-# Updating 'test_join' dataset with matched model
-test_join = test_join %>%
-  left_join(unique_rows, by = c("model" = "original_model")) %>%
-  mutate(model = coalesce(matched_model, model)) %>%
-  select(-matched_model)
 
 
 # selecting specific columns
@@ -641,13 +598,24 @@ final_vehicle_prices = final_vehicle_prices %>%
   ungroup()
 
 
+# filling NAs on mileage for used cars that are missing with the model year and make medians
+final_vehicle_prices = final_vehicle_prices %>% 
+  group_by(model_year, make) %>% 
+  mutate(avg_mileage = ifelse(is.na(avg_mileage), mean(avg_mileage, na.rm = TRUE), avg_mileage)) %>% 
+  ungroup()
+
+
+
 # Estimates of new vehicle prices for older models
 final_vehicle_prices = final_vehicle_prices %>% 
+  group_by(model_year,make, model) %>% 
+  mutate(avg_new_price = ifelse(is.na(avg_new_price), mean(avg_new_price, na.rm = TRUE), avg_new_price)) %>% 
+  ungroup()%>%
   group_by(make, model) %>% 
-  mutate(avg_new_price = ifelse(is.na(avg_new_price), median(avg_new_price, na.rm = TRUE), avg_new_price)) %>% 
+  mutate(avg_new_price = ifelse(is.na(avg_new_price), mean(avg_new_price, na.rm = TRUE), avg_new_price)) %>% 
   ungroup()%>%
   group_by(make) %>%
-  mutate(avg_new_price = ifelse(is.na(avg_new_price), median(avg_new_price, na.rm = TRUE), avg_new_price)) %>%
+  mutate(avg_new_price = ifelse(is.na(avg_new_price), mean(avg_new_price, na.rm = TRUE), avg_new_price)) %>%
   ungroup()
 
 
@@ -677,6 +645,26 @@ final_vehicle_prices = final_vehicle_prices %>%
   )
 
 
+  # converting model year to integer
+final_vehicle_prices$model_year <- as.numeric(as.character(final_vehicle_prices$model_year))
+  
+# creating a column to capture the age of the vehicle since production
+final_vehicle_prices$model_year_num = 2025 - final_vehicle_prices$model_year
+
+
+# dealing with extreme mileage values
+final_vehicle_prices = final_vehicle_prices %>%
+  group_by(model_year_num, make) %>% 
+  arrange(desc(avg_mileage)) %>% 
+  mutate(
+    avg_mileage = if_else(
+      avg_mileage > (3 * (15200 * model_year_num)),
+      median(avg_mileage[avg_used_price != 0], na.rm = TRUE), 
+      avg_mileage)) %>% 
+  ungroup() %>% 
+  arrange(model_year, make, model) %>% 
+  select(-model_year_num)
+
 
 write.csv(final_vehicle_prices, "final_vehicle_prices.csv")
 ```
@@ -684,27 +672,47 @@ write.csv(final_vehicle_prices, "final_vehicle_prices.csv")
 # Joining All Three Datasets
 
 ```{r}
-final_vehicle_prices <- final_vehicle_prices %>%
-  mutate(model_year = as.numeric(model_year))
 
-# joining fuel consumption ratings, fuel price data & vehicle price data
-complete_dataset = test_join %>% 
-  filter(model_year >= 2016)|> 
-  left_join(final_vehicle_prices,
-            by = c("model_year", "make", "model")) 
+# Perform approximate string matching
+complete_dataset <- stringdist_join(
+  final_vehicle_prices, test_join,
+  by = "model",
+  method = "jw",
+  max_dist = 0.03,
+  mode = "right",
+  distance_col = "dist"
+) %>%
+  group_by(model.y) %>%  # Group by model.y (right-side dataset)
+  slice_min(order_by = dist, n = 1) %>%  # Pick the closest match
+  ungroup() %>%
+  filter(make.x == make.y & model_year.x == model_year.y | is.na(make.y)) %>%
+  mutate(
+    make = make.y, 
+    model = model.y, 
+    model_year = model_year.y
+  ) %>%
+  select(-model.x, -model.y, -model_year.x, -model_year.y, -make.x, -make.y, -dist)
 
 
-# removing columns without vehicle price information
-complete_dataset = complete_dataset %>%
-  filter(!is.na(avg_used_price))
+
+# # joining fuel consumption ratings, fuel price data & vehicle price data
+# complete_dataset = test_join %>% 
+#   filter(model_year >= 2016)|> 
+#   left_join(final_vehicle_prices,
+#             by = c("model_year", "make", "model")) 
 
 
-head(complete_dataset)
+# # removing columns without vehicle price information
+# complete_dataset = complete_dataset %>%
+#   filter(!is.na(avg_used_price))
+
+
+# View(complete_dataset)
+# View(final_vehicle_prices)
 
 
 write.csv(complete_dataset, "vehicle_fuel_prices.csv")
 ```
-
 
 ```{r}
 fill_dataset <- function(df) {
