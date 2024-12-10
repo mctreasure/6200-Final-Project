@@ -764,5 +764,9 @@ head(complete_dataset)
 ```
 
 ```{r}
-write.csv(complete_dataset, "vehicle_prices_nafilled.csv")
+complete_dataset = read.csv("vehicle_prices_nafilled.csv")
+
+View(complete_dataset)
+
+View(complete_dataset)
 ```
